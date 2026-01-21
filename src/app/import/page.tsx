@@ -1,88 +1,27 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
+import { useFileHandler } from "@/hooks/useFileHandler";
+import { parseFiles } from "@/services/import";
 import { Box, Button, Container, Icon, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
-
-const ACCEPT_TYPES = [
-  "application/pdf",
-  "text/csv",
-  "application/vnd.ms-excel",
-];
+const ACCEPT_TYPES = ["application/pdf", "text/csv", "application/vnd.ms-excel"];
+const ACCEPT_EXTENSIONS = [".csv", ".pdf"];
 
 export default function ImportPage() {
-  const [files, setFiles] = useState<File[]>([]);
-
-  const parseFiles = async (nextFiles: File[]) => {
-    if (!nextFiles.length) return;
-
-    const parseFile = async (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("http://localhost:8000/parse", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const message = await response.text().catch(() => "");
-        throw new Error(message || `Failed to parse ${file.name}`);
-      }
-    };
-
-    const results = await Promise.allSettled(nextFiles.map(parseFile));
-    const failed = results
-      .map((result, index) => ({ result, file: nextFiles[index] }))
-      .filter(({ result }) => result.status === "rejected")
-      .map(({ file }) => file.name);
-
-    if (failed.length) {
+  
+  const { files, handleFiles, acceptAttribute } = useFileHandler({
+    acceptTypes: ACCEPT_TYPES,
+    acceptExtensions: ACCEPT_EXTENSIONS,
+    onReject: (file) => {
       toaster.create({
         type: "error",
-        title: "Parse failed",
-        description: `Failed to parse: ${failed.join(", ")}`,
-        duration: 4500,
-        meta: { closable: true },
-      });
-    }
-
-    if (failed.length !== nextFiles.length) {
-      const successCount = nextFiles.length - failed.length;
-      toaster.create({
-        type: "success",
-        title: "Parse complete",
-        description: `${successCount} file${
-          successCount === 1 ? "" : "s"
-        } parsed`,
+        title: "Unsupported file",
+        description: `${file.name} is not PDF/CSV`,
         duration: 3500,
         meta: { closable: true },
       });
-    }
-  };
-
-  const handleFiles = (incoming: FileList | null) => {
-    if (!incoming) return;
-
-    const next = Array.from(incoming).filter((file) => {
-      const allowed =
-        ACCEPT_TYPES.includes(file.type) ||
-        file.name.toLowerCase().endsWith(".csv") ||
-        file.name.toLowerCase().endsWith(".pdf");
-
-      if (!allowed) {
-        toaster.create({
-          type: "error",
-          title: "Unsupported file",
-          description: `${file.name} is not PDF/CSV`,
-          duration: 3500,
-          meta: { closable: true },
-        });
-      }
-      return allowed;
-    });
-
-    if (next.length) {
+    },
+    onAccept: (next) => {
       toaster.create({
         type: "success",
         title: "Files imported",
@@ -91,10 +30,9 @@ export default function ImportPage() {
         meta: { closable: true },
       });
 
-      setFiles(next);
       void parseFiles(next);
-    }
-  };
+    },
+  });
 
   return (
     <Container maxW="lg" py={16} centerContent>
@@ -143,7 +81,7 @@ export default function ImportPage() {
               <input
                 type="file"
                 hidden
-                accept=".pdf,.csv,application/pdf,text/csv"
+                accept={acceptAttribute}
                 multiple
                 onChange={(event) => handleFiles(event.target.files)}
               />
