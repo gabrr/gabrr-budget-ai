@@ -3,7 +3,8 @@
 import { toaster } from "@/components/ui/toaster";
 import { useFileHandler } from "@/hooks/useFileHandler";
 import { parseFiles } from "@/services/import";
-import { Box, Button, Container, Icon, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Container, Text, VStack } from "@chakra-ui/react";
+import { AttachmentIcon } from "@chakra-ui/icons";
 const ACCEPT_TYPES = ["application/pdf", "text/csv", "application/vnd.ms-excel"];
 const ACCEPT_EXTENSIONS = [".csv", ".pdf"];
 
@@ -44,7 +45,7 @@ export default function ImportPage() {
           w="full"
           borderWidth="2px"
           borderStyle="dashed"
-          borderColor="gray.300"
+          borderColor="border.emphasized"
           rounded="lg"
           p={10}
           textAlign="center"
@@ -58,22 +59,9 @@ export default function ImportPage() {
           }}
         >
           <VStack gap={3}>
-            <Icon boxSize={8} color="gray.500">
-              <svg
-                width="1em"
-                height="1em"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-              </svg>
-            </Icon>
-            <Text>Drag and drop PDF or CSV files here</Text>
-            <Text fontSize="sm" color="gray.500">
+            <AttachmentIcon boxSize={8} />
+            <Text fontSize="md" fontWeight={600}>Drag and drop PDF or CSV files here</Text>
+            <Text fontSize="sm" color="colorPalette.500" fontWeight={400}>
               PDF (.pdf) or CSV (.csv)
             </Text>
             <Button as="label" colorScheme="teal">

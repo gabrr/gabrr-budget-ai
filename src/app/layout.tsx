@@ -25,8 +25,42 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          id="color-mode-init"
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  try {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = (isDark) => {
+      const className = isDark ? "dark" : "light";
+      const root = document.documentElement;
+      const body = document.body;
+      root.classList.remove("dark", "light");
+      root.classList.add(className);
+      if (body) {
+        body.classList.remove("dark", "light");
+        body.classList.add(className);
+      }
+      root.style.colorScheme = isDark ? "dark" : "light";
+    };
+
+    apply(media.matches);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", (event) => apply(event.matches));
+    } else if (typeof media.addListener === "function") {
+      media.addListener((event) => apply(event.matches));
+    }
+  } catch {}
+})();`,
+          }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

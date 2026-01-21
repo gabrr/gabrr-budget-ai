@@ -1,50 +1,52 @@
 "use client";
 
-import type { ThemeProviderProps } from "next-themes";
-import { ThemeProvider, useTheme } from "next-themes";
-import { useMemo } from "react";
+import type { PropsWithChildren } from "react";
+import { useEffect } from "react";
 
-type UseColorModeReturn = {
-  colorMode: "light" | "dark";
-  setColorMode: (value: "light" | "dark" | "system") => void;
-  toggleColorMode: () => void;
+const COLOR_MODE_QUERY = "(prefers-color-scheme: dark)";
+const DARK_CLASS = "dark";
+const LIGHT_CLASS = "light";
+
+const applyColorModeClass = (isDark: boolean) => {
+  const className = isDark ? DARK_CLASS : LIGHT_CLASS;
+  const targets: Array<HTMLElement | null> = [
+    document.documentElement,
+    document.body,
+  ];
+
+  targets.forEach((target) => {
+    if (!target) return;
+    target.classList.remove(DARK_CLASS, LIGHT_CLASS);
+    target.classList.add(className);
+  });
+
+  document.documentElement.style.colorScheme = isDark ? "dark" : "light";
 };
 
-export function ColorModeProvider({
-  children,
-  ...props
-}: ThemeProviderProps) {
-  return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
-      {children}
-    </ThemeProvider>
-  );
-}
-
-export function useColorMode(): UseColorModeReturn {
-  const { theme, systemTheme, setTheme } = useTheme();
-
-  const colorMode = useMemo(() => {
-    if (theme === "system") {
-      return systemTheme === "dark" ? "dark" : "light";
+export function ColorModeProvider({ children }: PropsWithChildren) {
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) {
+      return;
     }
-    return theme === "dark" ? "dark" : "light";
-  }, [theme, systemTheme]);
 
-  const toggleColorMode = () => {
-    setTheme(colorMode === "dark" ? "light" : "dark");
-  };
+    const media = window.matchMedia(COLOR_MODE_QUERY);
 
-  return { colorMode, setColorMode: setTheme, toggleColorMode };
-}
+    const update = (event?: MediaQueryList | MediaQueryListEvent) => {
+      const matches =
+        event && "matches" in event ? event.matches : media.matches;
+      applyColorModeClass(matches);
+    };
 
-export function useColorModeValue<T>(light: T, dark: T) {
-  const { colorMode } = useColorMode();
-  return colorMode === "dark" ? dark : light;
+    update(media);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", update);
+      return () => media.removeEventListener("change", update);
+    }
+
+    media.addListener(update);
+    return () => media.removeListener(update);
+  }, []);
+
+  return children;
 }
