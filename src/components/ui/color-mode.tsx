@@ -7,17 +7,21 @@ const COLOR_MODE_QUERY = "(prefers-color-scheme: dark)";
 const DARK_CLASS = "dark";
 const LIGHT_CLASS = "light";
 
+const THEME_ATTRIBUTE = "data-theme";
+
 const applyColorModeClass = (isDark: boolean) => {
   const className = isDark ? DARK_CLASS : LIGHT_CLASS;
   const targets: Array<HTMLElement | null> = [
     document.documentElement,
     document.body,
+    ...Array.from(document.querySelectorAll<HTMLElement>(".chakra-theme")),
   ];
 
   targets.forEach((target) => {
     if (!target) return;
     target.classList.remove(DARK_CLASS, LIGHT_CLASS);
     target.classList.add(className);
+    target.setAttribute(THEME_ATTRIBUTE, className);
   });
 
   document.documentElement.style.colorScheme = isDark ? "dark" : "light";

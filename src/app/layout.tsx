@@ -36,13 +36,16 @@ export default function RootLayout({
       const className = isDark ? "dark" : "light";
       const root = document.documentElement;
       const body = document.body;
-      root.classList.remove("dark", "light");
-      root.classList.add(className);
-      if (body) {
-        body.classList.remove("dark", "light");
-        body.classList.add(className);
-      }
-      root.style.colorScheme = isDark ? "dark" : "light";
+      const applyTo = (target) => {
+        if (!target) return;
+        target.classList.remove("dark", "light");
+        target.classList.add(className);
+        target.setAttribute("data-theme", className);
+      };
+
+      applyTo(root);
+      applyTo(body);
+      root.style.colorScheme = className;
     };
 
     apply(media.matches);
