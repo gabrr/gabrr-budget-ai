@@ -38,11 +38,16 @@ export default function RootLayout({
       const body = document.body;
       root.classList.remove("dark", "light");
       root.classList.add(className);
+      root.setAttribute("data-theme", className);
       if (body) {
         body.classList.remove("dark", "light");
         body.classList.add(className);
+        body.setAttribute("data-theme", className);
       }
       root.style.colorScheme = isDark ? "dark" : "light";
+      try {
+        window.localStorage.setItem("chakra-ui-color-mode", className);
+      } catch {}
     };
 
     apply(media.matches);
